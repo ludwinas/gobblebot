@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { db } = require('./feed');
+const { Prompt } = require('../model');
 
 function shuffle(array) {
     var random = array.map(Math.random);
@@ -10,13 +10,18 @@ function shuffle(array) {
 
 module.exports = {
     data: new SlashCommandBuilder()
-	.setName('random')
-	.setDescription('Spits out a random prompt'),
+        .setName('random')
+        .setDescription('Spits out a random prompt'),
     async execute(interaction) {
+        const prompts = await Prompt.findAll({
+            attributes: ["content"],
+            where: {server_id: interaction.guildId}
+        });
+        const db = prompts.map(p => p.content);
         console.log(`Giving out a random prompt from: ${db}`);
         if (db.length > 0) {
             const randomPrompt = db[Math.floor(Math.random() * db.length)];
-	    await interaction.reply(randomPrompt);
+            await interaction.reply(randomPrompt);
         } else {
             await interaction.reply("Sorry, no can do! my belly is empty. Try feeding me first");
         }

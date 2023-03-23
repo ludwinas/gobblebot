@@ -1,12 +1,10 @@
 const { SlashCommandBuilder } = require('discord.js');
-
-let db = [];
+const { Prompt } = require('../model');
 
 module.exports = {
-    db: db,
     data: new SlashCommandBuilder()
-	.setName('feed')
-	.setDescription('Feeds gobblebot a prompt')
+        .setName('feed')
+        .setDescription('Feeds gobblebot a prompt')
         .addStringOption(option =>
             option
                 .setName('input')
@@ -14,8 +12,16 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         const input = interaction.options.getString('input');
-        db.push(input);
-	await interaction.reply("Gobbled the following prompt: " + input);
-        console.log(db);
+
+        try {
+            const newPrompt = await Prompt.create({
+                user_id: interaction.user.id,
+                server_id: interaction.guildId,
+                content: input});
+            await interaction.reply("Gobbled the following prompt: " + newPrompt.content);
+
+        } catch (error) {
+            await interaction.reply('Oh no! Something went wrong with gobbling the prompt.');
+        }
     },
 };
