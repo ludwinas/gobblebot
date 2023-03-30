@@ -1,10 +1,13 @@
 const { Sequelize } = require('sequelize');
 
+require('dotenv').config();
+const storagePath = (process.env.DEV ? 'database.sqlite' : '/data/database.sqlite');
+
 const sequelize = new Sequelize('database', 'user', 'password', {
 	host: 'localhost',
 	dialect: 'sqlite',
 	logging: false,
-	storage: 'database.sqlite',
+	storage: storagePath,
 });
 
 const Prompt = sequelize.define('prompt', {
