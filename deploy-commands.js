@@ -4,6 +4,7 @@ require('dotenv').config()
 const token = process.env.DISCORD_TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
+const globalDeploy = process.env.GLOBAL;
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -24,17 +25,26 @@ const rest = new REST({ version: '10' }).setToken(token);
 // and deploy your commands!
 (async () => {
     try {
-	console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        let data = null;
+        if (globalDeploy) {
+            console.log('Deploying global commands...');
+            data = await rest.put(
+                Routes.applicationCommands(clientId),
+                { body: commands },
+            );
+        } else {
+            // The put method is used to fully refresh all commands in the guild with the current set
+            console.log(`Deploying commands to the ${guildId} server...`);
+            data = await rest.put(
+                Routes.applicationGuildCommands(clientId, guildId),
+                { body: commands },
+            );
+        }
 
-	// The put method is used to fully refresh all commands in the guild with the current set
-	const data = await rest.put(
-	    Routes.applicationGuildCommands(clientId, guildId),
-	    { body: commands },
-	);
-
-	console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
     } catch (error) {
-	// And of course, make sure you catch and log any errors!
-	console.error(error);
+        // And of course, make sure you catch and log any errors!
+        console.error(error);
     }
 })();
